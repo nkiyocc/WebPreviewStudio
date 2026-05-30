@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Web Preview Studio</title>
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #16181d;
+    --border: #2a2d35;
+    --text: #e2e4e9;
+    --text-muted: #8b92a8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --success: #22c55e;
+    --danger: #ef4444;
+    --warn: #e5c07b;
+    --editor-bg: #0d0f12;
+    --iphone-frame: #2d2d2d;
+    --samsung-frame: #1a1a1a;
+    --infinix-frame: #1f1f1f;
+    --tablet-frame: #2a2a2a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  /* Header */
+  .header {
+    height: 52px;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px 0 20px;
+    flex-shrink: 0;
+    gap: 12px;
+  }
+  .header-left, .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .logo {
+    font-weight: 700;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo svg { width: 20px; height: 20px; }
+  .device-toggle {
+    display: flex;
+    background: var(--bg);
+    border-radius: 8px;
+    padding: 3px;
+    border: 1px solid var(--border);
+  }
+  .device-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    padding: 6px 14px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .device-btn:hover { color: var(--text); }
+  .device-btn.active { background: var(--accent); color: white; }
+  .icon-btn {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    padding: 7px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--text-muted); }
+  .run-btn {
+    background: var(--success);
+    color: white;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .run-btn:hover { opacity: 0.9; }
+  /* Main Layout */
+  .main { display: flex; flex: 1; overflow: hidden; }
+  /* Editor Panel */
+  .editor-panel {
+    width: 45%;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border);
+    background: var(--panel);
+  }
+  .tabs {
+    display: flex;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    flex: 1;
+    padding: 12px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    position: relative;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: var(--panel);
+  }
+  .tab-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--danger);
+    display: none;
+  }
+  .tab-badge.active { display: block; }
+  .editor-container {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .editor {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--editor-bg);
+    color: #abb2bf;
+    border: none;
+    padding: 16px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Fira Code', Consolas, monospace;
+    font-size: 13.5px;
+    line-height: 1.6;
+    resize: none;
+    outline: none;
+    tab-size: 2;
+    display: none;
+  }
+  .editor.active { display: block; }
+  .editor.error { box-shadow: inset 0 0 0 1px var(--danger); }
+  .editor::placeholder { color: #4b5263; }
+  /* Preview Panel */
+  .preview-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+    position: relative;
+  }
+  .preview-toolbar {
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .phone-brand-bar {
+    display: none;
+    height: 36px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0,0,0,0.2);
+  }
+  .phone-brand-bar.active { display: flex; }
+  .brand-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    padding: 4px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s;
+  }
+  .brand-btn:hover { color: var(--text); border-color: var(--border); }
+  .brand-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+  .preview-area {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    overflow: auto;
+  }
+  /* Desktop Preview */
+  .preview-desktop {
+    display: none;
+    width: 100%;
+    height: 100%;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: white;
+  }
+  .preview-desktop.active { display: block; }
+  .preview-desktop iframe { width: 100%; height: 100%; border: none; display: block; }
+  /* Device scaler wrapper */
+  .device-wrapper {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+  }
+  .device-wrapper.active { display: flex; }
+  .device-scaler {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform-origin: center center;
+    transition: transform 0.2s ease;
+  }
+  .device-label {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  /* iPhone Frame */
+  .iphone-frame {
+    width: 375px;
+    height: 812px;
+    background: #1a1a1a;
+    border-radius: 50px;
+    border: 12px solid var(--iphone-frame);
+    position: relative;
+    box-shadow: 0 0 0 2px #1a1a1a, 0 25px 60px rgba(0,0,0,0.6);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .iphone-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 28px;
+    background: var(--iphone-frame);
+    border-bottom-left-radius: 16px;
+    border-bottom-right-radius: 16px;
+    z-index: 10;
+  }
+  .iphone-home {
+    position: absolute;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 120px;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    z-index: 10;
+  }
+  /* Samsung Frame */
+  .samsung-frame {
+    width: 360px;
+    height: 780px;
+    background: #0a0a0a;
+    border-radius: 32px;
+    border: 10px solid var(--samsung-frame);
+    position: relative;
+    box-shadow: 0 0 0 2px #0a0a0a, 0 20px 50px rgba(0,0,0,0.5);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .samsung-punch {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 14px;
+    background: #000;
+    border-radius: 50%;
+    border: 2px solid #111;
+    z-index: 10;
+  }
+  .samsung-bevel {
+    position: absolute;
+    inset: -2px;
+    border-radius: 34px;
+    border: 2px solid rgba(255,255,255,0.06);
+    pointer-events: none;
+    z-index: 11;
+  }
+  /* Infinix Frame */
+  .infinix-frame {
+    width: 360px;
+    height: 800px;
+    background: #0d0d0d;
+    border-radius: 28px;
+    border: 10px solid var(--infinix-frame);
+    position: relative;
+    box-shadow: 0 0 0 2px #0d0d0d, 0 20px 50px rgba(0,0,0,0.5);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .infinix-notch {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 22px;
+    background: var(--infinix-frame);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    z-index: 10;
+  }
+  .infinix-chin {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+  /* Tablet Frame */
+  .tablet-frame {
+    width: 560px;
+    height: 780px;
+    background: #1c1c1c;
+    border-radius: 24px;
+    border: 14px solid var(--tablet-frame);
+    position: relative;
+    box-shadow: 0 0 0 2px #1c1c1c, 0 25px 60px rgba(0,0,0,0.5);
+    overflow: hidden;
+    flex-shrink: 0;
+  }
+  .tablet-cam {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 10px;
+    background: #111;
+    border-radius: 50%;
+    border: 1px solid #333;
+    z-index: 10;
+  }
+  .tablet-home {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 3px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 2px;
+    z-index: 10;
+  }
+  /* Shared screen */
+  .device-screen { width: 100%; height: 100%; background: white; overflow: hidden; }
+  .device-screen iframe { width: 100%; height: 100%; border: none; display: block; }
+  /* Bottom Panel (Console + Errors) */
+  .bottom-panel {
+    height: 160px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  .panel-tabs {
+    display: flex;
+    height: 34px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-tab {
+    padding: 0 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .panel-tab:hover { color: var(--text); }
+  .panel-tab.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(59,130,246,0.05); }
+  .badge {
+    background: var(--danger);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 10px;
+    min-width: 16px;
+    text-align: center;
+  }
+  .badge.zero { background: var(--border); color: var(--text-muted); }
+  .panel-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  .panel-pane {
+    position: absolute;
+    inset: 0;
+    overflow-y: auto;
+    display: none;
+  }
+  .panel-pane.active { display: block; }
+  .console-output { padding: 8px 16px; font-family: monospace; font-size: 12px; line-height: 1.5; }
+  .console-line { padding: 2px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+  .console-log { color: #abb2bf; }
+  .console-error { color: var(--danger); }
+  .console-warn { color: var(--warn); }
+  .console-info { color: var(--accent); }
+  .console-clear {
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 4px;
+    z-index: 5;
+  }
+  .console-clear:hover { color: var(--text); background: var(--border); }
+  /* Errors Panel */
+  .errors-list { padding: 8px 16px; }
+  .error-item {
+    display: flex;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    font-size: 12px;
+    align-items: flex-start;
+    background: rgba(239,68,68,0.05);
+  }
+  .error-item.html { border-left: 3px solid var(--danger); }
+  .error-item.css { border-left: 3px solid var(--warn); }
+  .error-item.js { border-left: 3px solid #c678dd; }
+  .error-line {
+    font-family: monospace;
+    color: var(--text-muted);
+    font-size: 11px;
+    min-width: 50px;
+    padding-top: 1px;
+  }
+  .error-type {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: var(--border);
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .error-msg { color: var(--text); line-height: 1.5; flex: 1; }
+  .errors-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-muted);
+    font-size: 13px;
+    gap: 8px;
+  }
+  /* Modals */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(4px);
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    width: 500px;
+    max-width: 90vw;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .modal-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .modal-title { font-size: 15px; font-weight: 700; }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 18px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+  }
+  .modal-close:hover { color: var(--text); background: var(--border); }
+  .modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+  .modal-footer {
+    padding: 12px 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+  .modal-btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .modal-btn:hover { background: var(--border); }
+  .modal-btn.primary { background: var(--accent); border-color: var(--accent); color: white; }
+  .modal-btn.primary:hover { background: var(--accent-hover); }
+  /* Library list */
+  .lib-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+  .lib-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .lib-item:hover { background: rgba(59,130,246,0.05); border-color: var(--accent); }
+  .lib-item input {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .lib-info { flex: 1; }
+  .lib-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .lib-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  /* Export options */
+  .export-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: 8px;
+  }
+  .export-option:hover { border-color: var(--accent); background: rgba(59,130,246,0.05); }
+  .export-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .export-info { flex: 1; }
+  .export-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .export-desc { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .export-arrow { color: var(--text-muted); }
+  /* Resize handle */
+  .resize-handle {
+    width: 6px;
+    cursor: col-resize;
+    background: transparent;
+    transition: background 0.2s;
+  }
+  .resize-handle:hover { background: var(--accent); }
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #3a3d45; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      Web Preview Studio
+    </div>
+    <div class="device-toggle">
+      <button class="device-btn active" data-device="desktop" onclick="setCategory('desktop')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+        </svg>
+        Desktop
+      </button>
+      <button class="device-btn" data-device="phone" onclick="setCategory('phone')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/>
+        </svg>
+        Phone
+      </button>
+      <button class="device-btn" data-device="tablet" onclick="setCategory('tablet')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="4" y="2" width="16" height="20" rx="2"/><line x1="12" y1="18" x2="12" y2="18.01"/>
+        </svg>
+        Tablet
+      </button>
+    </div>
+  </div>
+  <div class="header-right">
+    <button class="icon-btn" onclick="openLibrariesModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+      Libraries
+    </button>
+    <button class="icon-btn" onclick="openExportModal()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      Export
+    </button>
+    <button class="run-btn" onclick="updatePreview()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+        <polygon points="5 3 19 12 5 21 5 3"/>
+      </svg>
+      Run
+    </button>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="editor-panel" id="editorPanel">
+    <div class="tabs">
+      <button class="tab active" data-tab="html" onclick="switchTab('html')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+        </svg>
+        HTML
+        <span class="tab-badge" id="htmlBadge"></span>
+      </button>
+      <button class="tab" data-tab="css" onclick="switchTab('css')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        CSS
+        <span class="tab-badge" id="cssBadge"></span>
+      </button>
+      <button class="tab" data-tab="js" onclick="switchTab('js')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+        </svg>
+        JS
+        <span class="tab-badge" id="jsBadge"></span>
+      </button>
+    </div>
+    <div class="editor-container">
+      <textarea class="editor active" id="htmlEditor" data-lang="html" placeholder="<!-- Write your HTML here -->" spellcheck="false"><!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>My App</title>
+</head>
+<body>
+  <div class="container">
+    <h1>Hello World</h1>
+    <p>Welcome to your preview!</p>
+    <button id="btn">Click Me</button>
+    <div id="output"></div>
+  </div>
+</body>
+</html></textarea>
+      <textarea class="editor" id="cssEditor" data-lang="css" placeholder="/* Write your CSS here */" spellcheck="false">* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  background: white;
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  text-align: center;
+  max-width: 400px;
+  width: 90%;
+}
+
+h1 {
+  color: #333;
+  margin-bottom: 12px;
+  font-size: 28px;
+}
+
+p {
+  color: #666;
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+#output {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  color: #333;
+  font-weight: 500;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}</textarea>
+      <textarea class="editor" id="jsEditor" data-lang="js" placeholder="// Write your JavaScript here" spellcheck="false">const btn = document.getElementById('btn');
+const output = document.getElementById('output');
+let count = 0;
+
+btn.addEventListener('click', () => {
+  count++;
+  output.textContent = `Button clicked ${count} time${count === 1 ? '' : 's'}! 🎉`;
+  console.log('Button clicked:', count);
+});
+
+console.log('App initialized successfully');</textarea>
+    </div>
+  </div>
+
+  <div class="resize-handle" id="resizeHandle"></div>
+
+  <div class="preview-panel">
+    <div class="preview-toolbar">
+      <span id="deviceLabel">Desktop Preview</span>
+      <span style="opacity: 0.5;">|</span>
+      <span id="resolutionLabel">Responsive</span>
+    </div>
+    <div class="phone-brand-bar" id="phoneBrandBar">
+      <button class="brand-btn active" data-brand="iphone" onclick="setPhoneBrand('iphone')">iPhone 14 Pro</button>
+      <button class="brand-btn" data-brand="samsung" onclick="setPhoneBrand('samsung')">Samsung Galaxy S24</button>
+      <button class="brand-btn" data-brand="infinix" onclick="setPhoneBrand('infinix')">Infinix Note 30</button>
+    </div>
+    <div class="preview-area" id="previewArea">
+      <div class="preview-desktop active" id="desktopPreview">
+        <iframe id="desktopFrame" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe>
+      </div>
+      <div class="device-wrapper" id="iphoneWrapper">
+        <div class="device-scaler" id="iphoneScaler">
+          <div class="iphone-frame">
+            <div class="iphone-notch"></div>
+            <div class="device-screen"><iframe id="iphoneFrame" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe></div>
+            <div class="iphone-home"></div>
+          </div>
+          <div class="device-label">iPhone 14 Pro — 390 × 844</div>
+        </div>
+      </div>
+      <div class="device-wrapper" id="samsungWrapper">
+        <div class="device-scaler" id="samsungScaler">
+          <div class="samsung-frame">
+            <div class="samsung-punch"></div>
+            <div class="samsung-bevel"></div>
+            <div class="device-screen"><iframe id="samsungFrame" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe></div>
+          </div>
+          <div class="device-label">Samsung Galaxy S24 — 360 × 780</div>
+        </div>
+      </div>
+      <div class="device-wrapper" id="infinixWrapper">
+        <div class="device-scaler" id="infinixScaler">
+          <div class="infinix-frame">
+            <div class="infinix-notch"></div>
+            <div class="device-screen"><iframe id="infinixFrame" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe></div>
+            <div class="infinix-chin"></div>
+          </div>
+          <div class="device-label">Infinix Note 30 — 360 × 800</div>
+        </div>
+      </div>
+      <div class="device-wrapper" id="tabletWrapper">
+        <div class="device-scaler" id="tabletScaler">
+          <div class="tablet-frame">
+            <div class="tablet-cam"></div>
+            <div class="device-screen"><iframe id="tabletFrame" sandbox="allow-scripts allow-same-origin allow-modals allow-forms"></iframe></div>
+            <div class="tablet-home"></div>
+          </div>
+          <div class="device-label">iPad Pro 11" — 834 × 1194</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom Panel: Console + Errors -->
+<div class="bottom-panel">
+  <div class="panel-tabs">
+    <button class="panel-tab active" onclick="switchBottomTab('console')">Console</button>
+    <button class="panel-tab" onclick="switchBottomTab('errors')">
+      Errors
+      <span class="badge zero" id="errorBadge">0</span>
+    </button>
+  </div>
+  <div class="panel-content">
+    <div class="panel-pane active" id="consolePane">
+      <button class="console-clear" onclick="clearConsole()">Clear</button>
+      <div class="console-output" id="consoleOutput"></div>
+    </div>
+    <div class="panel-pane" id="errorsPane">
+      <div class="errors-list" id="errorsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Libraries Modal -->
+<div class="modal-overlay" id="librariesModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">External Libraries</span>
+      <button class="modal-close" onclick="closeModal('librariesModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="lib-grid" id="libGrid"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="closeModal('librariesModal')">Close</button>
+      <button class="modal-btn primary" onclick="applyLibraries()">Apply & Run</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Export Project</span>
+      <button class="modal-close" onclick="closeModal('exportModal')">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="export-option" onclick="exportSingleHtml()">
+        <div class="export-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+        <div class="export-info">
+          <div class="export-title">Download as Single HTML</div>
+          <div class="export-desc">Combines HTML, CSS, JS and libraries into one file</div>
+        </div>
+        <div class="export-arrow">›</div>
+      </div>
+      <div class="export-option" onclick="copyToClipboard('html')">
+        <div class="export-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>
+          </svg>
+        </div>
+        <div class="export-info">
+          <div class="export-title">Copy HTML</div>
+          <div class="export-desc">Copy HTML content to clipboard</div>
+        </div>
+        <div class="export-arrow">›</div>
+      </div>
+      <div class="export-option" onclick="copyToClipboard('css')">
+        <div class="export-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="export-info">
+          <div class="export-title">Copy CSS</div>
+          <div class="export-desc">Copy CSS content to clipboard</div>
+        </div>
+        <div class="export-arrow">›</div>
+      </div>
+      <div class="export-option" onclick="copyToClipboard('js')">
+        <div class="export-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/>
+          </svg>
+        </div>
+        <div class="export-info">
+          <div class="export-title">Copy JavaScript</div>
+          <div class="export-desc">Copy JS content to clipboard</div>
+        </div>
+        <div class="export-arrow">›</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn" onclick="closeModal('exportModal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== STATE =====
+  let currentCategory = 'desktop';
+  let currentPhoneBrand = 'iphone';
+  let selectedLibraries = new Set();
+  let allErrors = [];
+
+  const deviceSpecs = {
+    iphone:   { w: 375 + 24, h: 812 + 24 + 40, label: 'iPhone 14 Pro', res: '390 × 844' },
+    samsung:  { w: 360 + 20, h: 780 + 20 + 40, label: 'Samsung Galaxy S24', res: '360 × 780' },
+    infinix:  { w: 360 + 20, h: 800 + 20 + 40, label: 'Infinix Note 30', res: '360 × 800' },
+    tablet:   { w: 560 + 28, h: 780 + 28 + 40, label: 'iPad Pro 11"', res: '834 × 1194' }
+  };
+
+  const libraryList = [
+    { id: 'tailwind', name: 'Tailwind CSS', desc: 'Utility-first CSS framework', url: 'https://cdn.tailwindcss.com', type: 'script' },
+    { id: 'bootstrap', name: 'Bootstrap 5', desc: 'Popular CSS/JS framework', css: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css', js: 'https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js' },
+    { id: 'jquery', name: 'jQuery 3.7', desc: 'Fast JavaScript library', url: 'https://code.jquery.com/jquery-3.7.1.min.js', type: 'script' },
+    { id: 'fontawesome', name: 'Font Awesome 6', desc: 'Icon library', url: 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css', type: 'style' },
+    { id: 'react', name: 'React 18', desc: 'UI library by Meta', url: 'https://unpkg.com/react@18/umd/react.development.js', type: 'script' },
+    { id: 'reactdom', name: 'ReactDOM 18', desc: 'React DOM renderer', url: 'https://unpkg.com/react-dom@18/umd/react-dom.development.js', type: 'script' },
+    { id: 'vue', name: 'Vue 3', desc: 'Progressive JS framework', url: 'https://unpkg.com/vue@3/dist/vue.global.js', type: 'script' },
+    { id: 'alpine', name: 'Alpine.js', desc: 'Lightweight reactivity', url: 'https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js', type: 'script' },
+    { id: 'gsap', name: 'GSAP 3', desc: 'Animation library', url: 'https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js', type: 'script' },
+    { id: 'three', name: 'Three.js', desc: '3D WebGL library', url: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js', type: 'script' }
+  ];
+
+  // ===== EDITOR TABS =====
+  function switchTab(lang) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === lang));
+    document.querySelectorAll('.editor').forEach(e => e.classList.toggle('active', e.dataset.lang === lang));
+  }
+
+  // ===== BOTTOM TABS =====
+  function switchBottomTab(tab) {
+    document.querySelectorAll('.panel-tab').forEach(t => t.classList.toggle('active', t.textContent.toLowerCase().includes(tab)));
+    document.querySelectorAll('.panel-pane').forEach(p => p.classList.toggle('active', p.id === tab + 'Pane'));
+  }
+
+  // ===== DEVICE SCALING =====
+  function fitDevice(scalerId, specKey) {
+    const wrapper = document.getElementById(scalerId.replace('Scaler', 'Wrapper'));
+    const scaler = document.getElementById(scalerId);
+    if (!wrapper || !wrapper.classList.contains('active')) return;
+    const spec = deviceSpecs[specKey];
+    const areaW = wrapper.clientWidth - 40;
+    const areaH = wrapper.clientHeight - 40;
+    const scale = Math.min(areaW / spec.w, areaH / spec.h, 1);
+    scaler.style.transform = `scale(${scale})`;
+  }
+  function fitAll() {
+    if (currentCategory === 'phone') {
+      fitDevice('iphoneScaler', 'iphone');
+      fitDevice('samsungScaler', 'samsung');
+      fitDevice('infinixScaler', 'infinix');
+    } else if (currentCategory === 'tablet') {
+      fitDevice('tabletScaler', 'tablet');
+    }
+  }
+
+  // ===== CATEGORY SWITCHING =====
+  function setCategory(cat) {
+    currentCategory = cat;
+    document.querySelectorAll('.device-btn').forEach(b => b.classList.toggle('active', b.dataset.device === cat));
+    const desktop = document.getElementById('desktopPreview');
+    const iphone = document.getElementById('iphoneWrapper');
+    const samsung = document.getElementById('samsungWrapper');
+    const infinix = document.getElementById('infinixWrapper');
+    const tablet = document.getElementById('tabletWrapper');
+    const brandBar = document.getElementById('phoneBrandBar');
+    const label = document.getElementById('deviceLabel');
+    const resLabel = document.getElementById('resolutionLabel');
+    [desktop, iphone, samsung, infinix, tablet].forEach(el => el.classList.remove('active'));
+    brandBar.classList.remove('active');
+    if (cat === 'desktop') {
+      desktop.classList.add('active');
+      label.textContent = 'Desktop Preview';
+      resLabel.textContent = 'Responsive';
+    } else if (cat === 'phone') {
+      brandBar.classList.add('active');
+      label.textContent = 'Phone Preview';
+      setPhoneBrand(currentPhoneBrand);
+    } else if (cat === 'tablet') {
+      tablet.classList.add('active');
+      label.textContent = 'Tablet Preview';
+      resLabel.textContent = deviceSpecs.tablet.res;
+      requestAnimationFrame(() => fitDevice('tabletScaler', 'tablet'));
+    }
+  }
+
+  // ===== PHONE BRAND =====
+  function setPhoneBrand(brand) {
+    currentPhoneBrand = brand;
+    document.querySelectorAll('.brand-btn').forEach(b => b.classList.toggle('active', b.dataset.brand === brand));
+    const iphone = document.getElementById('iphoneWrapper');
+    const samsung = document.getElementById('samsungWrapper');
+    const infinix = document.getElementById('infinixWrapper');
+    const resLabel = document.getElementById('resolutionLabel');
+    [iphone, samsung, infinix].forEach(el => el.classList.remove('active'));
+    if (brand === 'iphone') { iphone.classList.add('active'); resLabel.textContent = deviceSpecs.iphone.res; requestAnimationFrame(() => fitDevice('iphoneScaler', 'iphone')); }
+    else if (brand === 'samsung') { samsung.classList.add('active'); resLabel.textContent = deviceSpecs.samsung.res; requestAnimationFrame(() => fitDevice('samsungScaler', 'samsung')); }
+    else if (brand === 'infinix') { infinix.classList.add('active'); resLabel.textContent = deviceSpecs.infinix.res; requestAnimationFrame(() => fitDevice('infinixScaler', 'infinix')); }
+  }
+
+  // ===== CONSOLE =====
+  const consoleOutput = document.getElementById('consoleOutput');
+  function logToConsole(msg, type = 'log') {
+    const line = document.createElement('div');
+    line.className = `console-line console-${type}`;
+    const time = new Date().toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    line.textContent = `[${time}] ${msg}`;
+    consoleOutput.appendChild(line);
+    consoleOutput.scrollTop = consoleOutput.scrollHeight;
+  }
+  function clearConsole() { consoleOutput.innerHTML = ''; }
+
+  // ===== LIBRARIES MODAL =====
+  function openLibrariesModal() {
+    const grid = document.getElementById('libGrid');
+    grid.innerHTML = libraryList.map(lib => `
+      <label class="lib-item">
+        <input type="checkbox" value="${lib.id}" ${selectedLibraries.has(lib.id) ? 'checked' : ''} onchange="toggleLib('${lib.id}')">
+        <div class="lib-info">
+          <div class="lib-name">${lib.name}</div>
+          <div class="lib-desc">${lib.desc}</div>
+        </div>
+      </label>
+    `).join('');
+    document.getElementById('librariesModal').classList.add('active');
+  }
+  function toggleLib(id) {
+    if (selectedLibraries.has(id)) selectedLibraries.delete(id);
+    else selectedLibraries.add(id);
+  }
+  function applyLibraries() {
+    closeModal('librariesModal');
+    updatePreview();
+    const count = selectedLibraries.size;
+    logToConsole(count > 0 ? `Applied ${count} external librar${count === 1 ? 'y' : 'ies'}` : 'No libraries selected', 'info');
+  }
+  function getLibraryTags() {
+    let tags = '';
+    libraryList.forEach(lib => {
+      if (!selectedLibraries.has(lib.id)) return;
+      if (lib.type === 'script') tags += `<script src="${lib.url}"><\/script>\n`;
+      else if (lib.type === 'style') tags += `<link rel="stylesheet" href="${lib.url}">\n`;
+      else if (lib.css && lib.js) {
+        tags += `<link rel="stylesheet" href="${lib.css}">\n`;
+        tags += `<script src="${lib.js}"><\/script>\n`;
+      }
+    });
+    return tags;
+  }
+
+  // ===== EXPORT MODAL =====
+  function openExportModal() { document.getElementById('exportModal').classList.add('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function buildFullHtml() {
+    const html = document.getElementById('htmlEditor').value;
+    const css = document.getElementById('cssEditor').value;
+    const js = document.getElementById('jsEditor').value;
+    let bodyContent = html, headContent = '';
+    if (html.includes('<body')) {
+      const bm = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      if (bm) bodyContent = bm[1];
+      const hm = html.match(/<head[^>]*>([\s\S]*)<\/head>/i);
+      if (hm) headContent = hm[1];
+    }
+    return `<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n${headContent}\n${getLibraryTags()}\n<style>\n${css}\n</style>\n</head>\n<body>\n${bodyContent}\n<script>\n${js}\n<\/script>\n</body>\n</html>`;
+  }
+  function exportSingleHtml() {
+    const blob = new Blob([buildFullHtml()], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'project.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    closeModal('exportModal');
+    logToConsole('Exported project.html', 'info');
+  }
+  function copyToClipboard(type) {
+    const text = document.getElementById(type + 'Editor').value;
+    navigator.clipboard.writeText(text).then(() => {
+      logToConsole(`${type.toUpperCase()} copied to clipboard`, 'info');
+      closeModal('exportModal');
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      logToConsole(`${type.toUpperCase()} copied to clipboard`, 'info');
+      closeModal('exportModal');
+    });
+  }
+
+  // ===== LIVE ERROR HIGHLIGHT =====
+  function getLineNumber(text, index) {
+    return text.substring(0, index).split('\n').length;
+  }
+  function checkHtmlErrors(html) {
+    const errors = [];
+    const selfClosing = ['area','base','br','col','embed','hr','img','input','link','meta','param','source','track','wbr'];
+    const tagRegex = /<\/?([a-zA-Z][a-zA-Z0-9]*)[^>]*?>/g;
+    const stack = [];
+    let match;
+    while ((match = tagRegex.exec(html)) !== null) {
+      const fullTag = match[0];
+      const tagName = match[1].toLowerCase();
+      const isClosing = fullTag.startsWith('</');
+      const isSelfClosing = selfClosing.includes(tagName) || fullTag.endsWith('/>') || fullTag.endsWith('/>');
+      if (isClosing) {
+        if (stack.length === 0) {
+          errors.push({ line: getLineNumber(html, match.index), type: 'html', message: `Unexpected closing tag </${tagName}>` });
+        } else {
+          const last = stack.pop();
+          if (last !== tagName) {
+            errors.push({ line: getLineNumber(html, match.index), type: 'html', message: `Mismatched tag: expected </${last}> but found </${tagName}>` });
+          }
+        }
+      } else if (!isSelfClosing) {
+        stack.push(tagName);
+      }
+    }
+    while (stack.length > 0) {
+      const tag = stack.pop();
+      errors.push({ line: getLineNumber(html, html.length), type: 'html', message: `Unclosed tag <${tag}>` });
+    }
+    return errors;
+  }
+  function checkCssErrors(css) {
+    const errors = [];
+    let braceCount = 0, inString = false, stringChar = '';
+    for (let i = 0; i < css.length; i++) {
+      const char = css[i];
+      if (inString) {
+        if (char === stringChar && css[i-1] !== '\\') inString = false;
+      } else if (char === '"' || char === "'") {
+        inString = true; stringChar = char;
+      } else if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount < 0) {
+          errors.push({ line: getLineNumber(css, i), type: 'css', message: 'Unexpected closing brace }' });
+          braceCount = 0;
+        }
+      }
+    }
+    if (braceCount > 0) {
+      errors.push({ line: getLineNumber(css, css.length), type: 'css', message: `${braceCount} unclosed block(s) — missing }` });
+    }
+    return errors;
+  }
+  function checkJsErrors(js) {
+    const errors = [];
+    if (!js.trim()) return errors;
+    try {
+      new Function(js);
+    } catch(e) {
+      const match = e.stack && e.stack.match(/<anonymous>:(\d+):\d+/);
+      const line = match ? parseInt(match[1]) : 1;
+      errors.push({ line, type: 'js', message: e.message });
+    }
+    return errors;
+  }
+  function runErrorCheck() {
+    const html = document.getElementById('htmlEditor').value;
+    const css = document.getElementById('cssEditor').value;
+    const js = document.getElementById('jsEditor').value;
+    const htmlErrs = checkHtmlErrors(html);
+    const cssErrs = checkCssErrors(css);
+    const jsErrs = checkJsErrors(js);
+    allErrors = [...htmlErrs, ...cssErrs, ...jsErrs];
+
+    // Update badges
+    document.getElementById('htmlBadge').classList.toggle('active', htmlErrs.length > 0);
+    document.getElementById('cssBadge').classList.toggle('active', cssErrs.length > 0);
+    document.getElementById('jsBadge').classList.toggle('active', jsErrs.length > 0);
+
+    // Update error list
+    const list = document.getElementById('errorsList');
+    const badge = document.getElementById('errorBadge');
+    badge.textContent = allErrors.length;
+    badge.classList.toggle('zero', allErrors.length === 0);
+
+    if (allErrors.length === 0) {
+      list.innerHTML = `
+        <div class="errors-empty">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--success)" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          No errors detected — all good!
+        </div>`;
+    } else {
+      list.innerHTML = allErrors.map(e => `
+        <div class="error-item ${e.type}">
+          <span class="error-line">Line ${e.line}</span>
+          <span class="error-type">${e.type}</span>
+          <span class="error-msg">${e.message}</span>
+        </div>
+      `).join('');
+    }
+
+    // Editor error borders
+    document.getElementById('htmlEditor').classList.toggle('error', htmlErrs.length > 0);
+    document.getElementById('cssEditor').classList.toggle('error', cssErrs.length > 0);
+    document.getElementById('jsEditor').classList.toggle('error', jsErrs.length > 0);
+  }
+
+  // ===== PREVIEW BUILDER =====
+  function updatePreview() {
+    const html = document.getElementById('htmlEditor').value;
+    const css = document.getElementById('cssEditor').value;
+    const js = document.getElementById('jsEditor').value;
+    let bodyContent = html, headContent = '';
+    if (html.includes('<body')) {
+      const bm = html.match(/<body[^>]*>([\s\S]*)<\/body>/i);
+      if (bm) bodyContent = bm[1];
+      const hm = html.match(/<head[^>]*>([\s\S]*)<\/head>/i);
+      if (hm) headContent = hm[1];
+    }
+    const libTags = getLibraryTags();
+    const srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+${headContent}
+${libTags}
+<style>${css}</style>
+<script>
+  const originalLog = console.log, originalError = console.error, originalWarn = console.warn, originalInfo = console.info;
+  function sendToParent(type, args) {
+    try {
+      const msg = args.map(a => { if (typeof a === 'object') try { return JSON.stringify(a); } catch(e) { return String(a); } return String(a); }).join(' ');
+      window.parent.postMessage({ source: 'preview-console', type, message: msg }, '*');
+    } catch(e) {}
+  }
+  console.log = function(...args) { originalLog.apply(console, args); sendToParent('log', args); };
+  console.error = function(...args) { originalError.apply(console, args); sendToParent('error', args); };
+  console.warn = function(...args) { originalWarn.apply(console, args); sendToParent('warn', args); };
+  console.info = function(...args) { originalInfo.apply(console, args); sendToParent('info', args); };
+  window.onerror = function(msg, url, line) { sendToParent('error', [msg + ' (line ' + line + ')']); };
+<\/script>
+</head>
+<body>
+${bodyContent}
+<script>${js}<\/script>
+</body>
+</html>`;
+    document.getElementById('desktopFrame').srcdoc = srcdoc;
+    document.getElementById('iphoneFrame').srcdoc = srcdoc;
+    document.getElementById('samsungFrame').srcdoc = srcdoc;
+    document.getElementById('infinixFrame').srcdoc = srcdoc;
+    document.getElementById('tabletFrame').srcdoc = srcdoc;
+    logToConsole('Preview updated successfully', 'info');
+  }
+
+  window.addEventListener('message', (e) => {
+    if (e.data && e.data.source === 'preview-console') {
+      logToConsole(e.data.message, e.data.type);
+    }
+  });
+
+  // ===== AUTO-RUN + ERROR CHECK =====
+  let timeout;
+  document.querySelectorAll('.editor').forEach(ed => {
+    ed.addEventListener('input', () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => { runErrorCheck(); updatePreview(); }, 800);
+    });
+    ed.addEventListener('keydown', (e) => {
+      if (e.key === 'Tab') {
+        e.preventDefault();
+        const start = ed.selectionStart, end = ed.selectionEnd;
+        ed.value = ed.value.substring(0, start) + '  ' + ed.value.substring(end);
+        ed.selectionStart = ed.selectionEnd = start + 2;
+      }
+    });
+  });
+
+  // ===== RESIZE =====
+  let isResizing = false;
+  document.getElementById('resizeHandle').addEventListener('mousedown', (e) => {
+    isResizing = true;
+    document.body.style.cursor = 'col-resize';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!isResizing) return;
+    const newWidth = (e.clientX / window.innerWidth) * 100;
+    if (newWidth > 20 && newWidth < 70) {
+      document.getElementById('editorPanel').style.width = newWidth + '%';
+      fitAll();
+    }
+  });
+  document.addEventListener('mouseup', () => { isResizing = false; document.body.style.cursor = ''; });
+  window.addEventListener('resize', fitAll);
+
+  // ===== INIT =====
+  runErrorCheck();
+  updatePreview();
+  logToConsole('Web Preview Studio ready. Start coding!', 'info');
+</script>
+
+</body>
+</html>
