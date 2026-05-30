@@ -38,7 +38,9 @@ Perfect for:
 
 ### Option A: Use Online (GitHub Pages)
 
-If the project is hosted on GitHub Pages, simply visit the URL in your browser
+The project is hosted on GitHub Pages, simply visit the URL in your browser
+
+`https://nkiyocc.github.io/WebPreviewStudio/`
 
 No download or installation needed. Works on any device with a modern browser.
 
