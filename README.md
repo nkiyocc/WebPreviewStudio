@@ -1,6 +1,7 @@
-# Web Preview Studio
 
-A lightweight, browser-based web development playground for testing HTML, CSS, and JavaScript with live device previews — no server, no build step, no internet required.
+readme_content = '''# Web Preview Studio
+
+A lightweight, browser-based web development playground for testing HTML, CSS, and JavaScript with live device previews — no server, no build step required.
 
 ---
 
@@ -13,6 +14,7 @@ Perfect for:
 - Testing responsive designs across devices
 - Learning HTML/CSS/JS without setting up a dev environment
 - Previewing code snippets before deploying
+- Sharing live demos via GitHub Pages
 
 ---
 
@@ -35,18 +37,30 @@ Perfect for:
 
 ## How to Use
 
-### 1. Open the File
+### Option A: Use Online (GitHub Pages)
 
-Simply double-click `web-preview-studio.html` in any modern browser (Chrome, Edge, Firefox, Safari). No server or installation needed.
+If the project is hosted on GitHub Pages, simply visit the URL in your browser:
 
-### 2. Write Your Code
+```
+https://yourusername.github.io/web-preview-studio/
+```
+
+No download or installation needed. Works on any device with a modern browser.
+
+### Option B: Use Locally
+
+Download `web-preview-studio.html` and double-click it to open in any modern browser (Chrome, Edge, Firefox, Safari). No server or installation needed.
+
+---
+
+### 1. Write Your Code
 
 - Switch between **HTML**, **CSS**, and **JS** tabs in the left panel
 - Write or paste your code
 - The editor supports `Tab` key for 2-space indentation
 - Press **Run** or just stop typing — the preview auto-updates
 
-### 3. Test Across Devices
+### 2. Test Across Devices
 
 - Click **Desktop** for a full responsive preview
 - Click **Phone** to see a brand selector bar, then choose:
@@ -57,13 +71,13 @@ Simply double-click `web-preview-studio.html` in any modern browser (Chrome, Edg
 
 All device frames auto-scale to fit your screen size.
 
-### 4. Add External Libraries
+### 3. Add External Libraries
 
 1. Click the **Libraries** button in the top-right header
 2. Check the libraries you want (e.g., Tailwind CSS, Bootstrap)
 3. Click **Apply & Run** — they are injected into the preview automatically
 
-### 5. Monitor Errors & Console
+### 4. Monitor Errors & Console
 
 - **Console** tab — shows `console.log`, `console.error`, `console.warn` from your preview code
 - **Errors** tab — live syntax checking:
@@ -71,12 +85,37 @@ All device frames auto-scale to fit your screen size.
   - Red border on editor = errors present
   - Click the Errors tab to see line-by-line details
 
-### 6. Export Your Project
+### 5. Export Your Project
 
 1. Click **Export** in the header
 2. Choose your option:
    - **Download as Single HTML** — one file with everything bundled
    - **Copy HTML / CSS / JS** — copy individual files to clipboard
+
+---
+
+## Deploy to GitHub Pages
+
+Want to host your own copy online? Here's how:
+
+### Step 1: Create a GitHub Repository
+1. Go to [github.com](https://github.com) and create a new repository
+2. Name it anything (e.g., `web-preview-studio`)
+3. Make it **Public**
+
+### Step 2: Upload the File
+1. In your repo, click **Add file → Upload files**
+2. Drag and drop `web-preview-studio.html`
+3. Click **Commit changes**
+
+### Step 3: Enable GitHub Pages
+1. Go to **Settings → Pages** (left sidebar)
+2. Under **Source**, select **Deploy from a branch**
+3. Choose **main** branch and **/(root)** folder
+4. Click **Save**
+5. Wait 1–2 minutes, then visit the URL shown (e.g., `https://yourusername.github.io/web-preview-studio/`)
+
+> **Tip:** Rename `web-preview-studio.html` to `index.html` before uploading, or set it as the default page in your repo settings, so the URL loads it directly without the filename.
 
 ---
 
@@ -124,9 +163,10 @@ You can write either a full HTML document or just the body content. The tool wil
 > Note: The JS error checker uses a safe parse — it won't execute your code, only validate syntax. Runtime errors still appear in the Console panel.
 
 ### Saving Your Work
-The studio does not auto-save to disk. To preserve your work:
+The studio does not auto-save to disk or cloud. To preserve your work:
 - Use **Export → Download as Single HTML** to save your project
 - Or copy individual files and save them manually
+- If using GitHub Pages, your code resets on page refresh — export before leaving
 
 ---
 
@@ -159,3 +199,9 @@ No dependencies. No build step. Just one file.
 ## License
 
 Free to use, modify, and distribute for personal or commercial projects.
+'''
+
+with open('/mnt/agents/output/README.md', 'w', encoding='utf-8') as f:
+    f.write(readme_content)
+
+print("README updated with GitHub Pages instructions")
