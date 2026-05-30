@@ -38,11 +38,7 @@ Perfect for:
 
 ### Option A: Use Online (GitHub Pages)
 
-If the project is hosted on GitHub Pages, simply visit the URL in your browser:
-
-```
-https://yourusername.github.io/web-preview-studio/
-```
+If the project is hosted on GitHub Pages, simply visit the URL in your browser
 
 No download or installation needed. Works on any device with a modern browser.
 
