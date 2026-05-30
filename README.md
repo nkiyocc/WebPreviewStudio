@@ -91,31 +91,6 @@ All device frames auto-scale to fit your screen size.
 
 ---
 
-## Deploy to GitHub Pages
-
-Want to host your own copy online? Here's how:
-
-### Step 1: Create a GitHub Repository
-1. Go to [github.com](https://github.com) and create a new repository
-2. Name it anything (e.g., `web-preview-studio`)
-3. Make it **Public**
-
-### Step 2: Upload the File
-1. In your repo, click **Add file → Upload files**
-2. Drag and drop `web-preview-studio.html`
-3. Click **Commit changes**
-
-### Step 3: Enable GitHub Pages
-1. Go to **Settings → Pages** (left sidebar)
-2. Under **Source**, select **Deploy from a branch**
-3. Choose **main** branch and **/(root)** folder
-4. Click **Save**
-5. Wait 1–2 minutes, then visit the URL shown (e.g., `https://yourusername.github.io/web-preview-studio/`)
-
-> **Tip:** Rename `web-preview-studio.html` to `index.html` before uploading, or set it as the default page in your repo settings, so the URL loads it directly without the filename.
-
----
-
 ## Usage & Tips
 
 ### Writing HTML
