@@ -1,5 +1,4 @@
-
-readme_content = '''# Web Preview Studio
+# Web Preview Studio
 
 A lightweight, browser-based web development playground for testing HTML, CSS, and JavaScript with live device previews — no server, no build step required.
 
@@ -199,9 +198,3 @@ No dependencies. No build step. Just one file.
 ## License
 
 Free to use, modify, and distribute for personal or commercial projects.
-'''
-
-with open('/mnt/agents/output/README.md', 'w', encoding='utf-8') as f:
-    f.write(readme_content)
-
-print("README updated with GitHub Pages instructions")
